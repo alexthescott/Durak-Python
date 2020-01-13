@@ -22,6 +22,6 @@ If the defender is able to defend every card they are attacked with, the table i
 Once all of the cards from the deck are gone, players continue battling untile a single player remains. The final player remaining after the last defence is the durak, or 'fool'. This is to say that every player wins excluding one luckly loser 😁
 
 ---
-This game is called 'fool' because even a fool can learn and win. 
+Don't be the 'fool'... 
 
 [Durak Wikipedia](https://en.wikipedia.org/wiki/Durak)
