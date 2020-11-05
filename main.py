@@ -37,7 +37,7 @@ class MainController:
 
     # Start Game
     def start_game(self):
-        self.game = Durak()
+        self.game = Durak(self.clock)
 
     # Update
     def update(self):
@@ -65,6 +65,9 @@ class MainController:
         self.screen.blit(self.background, (0, 0))
         if self.screen_state == GAME_SCREEN:
             self.game.render(self.screen)
+            # "kill" our menu if we don't need it
+            if self.menu is not None:
+                self.menu = None
         if self.animate_state == MENU_SCREEN:
             self.menu.render(self.screen)
         elif self.animate_state == GAME_SCREEN:
