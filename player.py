@@ -1,14 +1,27 @@
 class Player:
-    def __init__(self, name):
+    def __init__(self, name, is_user):
         self.name = name
+        self.is_user = is_user
         self.hand = []
         self.uber_count = 0
+
+    def draw_card(self, card):
+        self.hand.append(card)
+
+    def need_more_cards(self):
+        return len(self) < 6
+
+    def sort_hand(self):
+        non_uber_cards = [c for c in self.hand if c.uber is not c.suit]
+        non_uber_cards.sort(key=lambda c: c.rank)
+
+        uber_cards = [c for c in self.hand if c.uber is c.suit]
+        uber_cards.sort(key=lambda c: c.rank)
+
+        self.hand = non_uber_cards + uber_cards
 
     def __len__(self):
         return len(self.hand)
 
-    def draw_card(self):
-        self.hand.append()
-
-    def sort_hand(self):
-        print('to_do, sort hand')
+    def __str__(self):
+        return str(self.name) + "\n" + "".join([str(c) + "\n" for c in self.hand])[:-1]

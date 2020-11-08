@@ -16,6 +16,7 @@ class MainController:
         pygame.display.set_caption("Durak")
         self.screen = pygame.display.set_mode(SCREENSIZE, 0, 32)
         self.clock = pygame.time.Clock()
+        self.clock.tick(60)
 
         self.debugFont = pygame.font.SysFont("Arial", 18)
 
@@ -42,12 +43,14 @@ class MainController:
     # Update
     def update(self):
         self.check_events()
-        if self.screen_state == 0:
+        if self.screen_state == MENU_SCREEN:
             self.menu.update()
-        elif self.screen_state == 1:
+        elif self.screen_state == GAME_SCREEN:
+            # create and start game
             if not self.game_created:
                 self.start_game()
-            self.game_created = True
+                self.game_created = True
+            self.game.update()
         self.render()
 
     # Check Events

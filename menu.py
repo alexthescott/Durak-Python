@@ -67,7 +67,6 @@ class Menu:
 
     def render(self, screen):
         screen.blit(self.titleText, (self.titleX, self.titleY))
-
         pygame.draw.rect(screen, (255, 255, 255), self.startButton)
         screen.blit(self.startText, (self.startButton.centerx - self.startTextSize[0] // 2, self.startButton.y))
         pygame.draw.rect(screen, (255, 255, 255), self.optionsButton)
