@@ -34,8 +34,9 @@ class Durak:
 
         self.players = []
 
-        self.add_player(Player("Alex", True))
-        self.add_player(Player("Bot", False))
+        self.add_player(Player("Alex", True, 0))
+        self.add_player(Player("NPC837", False, 1))
+        self.add_player(Player("NPC619", False, 2))
 
     def update(self):
         if not self.did_deal_cards_init and not self.currently_animating_deck:
@@ -79,7 +80,7 @@ class Durak:
 
     def deal_cards_init(self):
         # deal card by card
-        for i in range(6):
+        for i in range(8):
             for p in self.players:
                 if p.need_more_cards():
                     p.draw_card(self.gameDeck.pop())
@@ -96,6 +97,25 @@ class Durak:
                     temp_card = self.deckImages.get(c.suit + str(c.rank))
                     temp_card_height = temp_card.get_rect().size[1]
                     screen.blit(temp_card, (user_cards_x + i * user_cards_gap, SCREENHEIGHT - temp_card_height // 2))
+            elif p.id == 1:
+                user_cards_y = SCREENHEIGHT // 4
+                user_cards_y_end = SCREENHEIGHT - SCREENHEIGHT // 4
+                user_cards_gap = (user_cards_y_end - user_cards_y) / len(p)
+                for i, c in enumerate(p.hand):
+                    temp_card = self.back_card.copy()
+                    temp_card = pygame.transform.rotate(temp_card, 90)
+                    temp_card_width = temp_card.get_rect().size[0]
+                    screen.blit(temp_card, (-(temp_card_width // 2), user_cards_y + i * user_cards_gap))
+            elif p.id == 2:
+                user_cards_y = SCREENHEIGHT // 4
+                user_cards_y_end = SCREENHEIGHT - SCREENHEIGHT // 4
+                user_cards_gap = (user_cards_y_end - user_cards_y) / len(p)
+                for i, c in enumerate(p.hand):
+                    temp_card = self.back_card.copy()
+                    temp_card = pygame.transform.rotate(temp_card, 90)
+                    temp_card_width = temp_card.get_rect().size[0]
+                    screen.blit(temp_card, (SCREENWIDTH - temp_card_width // 2, user_cards_y + i * user_cards_gap))
+
 
     def load_image_assets(self):
         self.deckImages.update({"back": pygame.image.load('Res/Cards/BackCard.png').convert_alpha()})

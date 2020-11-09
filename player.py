@@ -1,7 +1,8 @@
 class Player:
-    def __init__(self, name, is_user):
+    def __init__(self, name, is_user, id):
         self.name = name
         self.is_user = is_user
+        self.id = id
         self.hand = []
         self.uber_count = 0
 
