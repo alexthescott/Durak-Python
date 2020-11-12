@@ -53,6 +53,13 @@ class Menu:
             pass
         self.mx, self.my = pygame.mouse.get_pos()
 
+    def render(self, screen):
+        screen.blit(self.titleText, (self.titleX, self.titleY))
+        pygame.draw.rect(screen, (255, 255, 255), self.startButton)
+        screen.blit(self.startText, (self.startButton.centerx - self.startTextSize[0] // 2, self.startButton.y))
+        pygame.draw.rect(screen, (255, 255, 255), self.optionsButton)
+        screen.blit(self.optionsText, (self.optionsButton.centerx - self.optionsTextSize[0] // 2, self.optionsButton.y))
+
     def mouse_click(self):
         self.click = True
 
@@ -64,13 +71,6 @@ class Menu:
             self.state = OPTION_SCREEN
             return OPTION_SCREEN
         return 0
-
-    def render(self, screen):
-        screen.blit(self.titleText, (self.titleX, self.titleY))
-        pygame.draw.rect(screen, (255, 255, 255), self.startButton)
-        screen.blit(self.startText, (self.startButton.centerx - self.startTextSize[0] // 2, self.startButton.y))
-        pygame.draw.rect(screen, (255, 255, 255), self.optionsButton)
-        screen.blit(self.optionsText, (self.optionsButton.centerx - self.optionsTextSize[0] // 2, self.optionsButton.y))
 
     def animate_off(self):
         self.animate_buttons_off_screen()

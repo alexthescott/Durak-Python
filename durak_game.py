@@ -1,5 +1,6 @@
 import pygame
 from math import ceil
+from random import shuffle
 
 # local imports
 from cards import Deck, Card
@@ -8,17 +9,19 @@ from player import Player
 
 
 class Durak:
-    def __init__(self, pygame_clock):
+    def __init__(self, pygame_clock, game_controller):
         self.pygame_clock = pygame_clock
+        self.game_controller = game_controller
         self.gameDeck = Deck()
         self.deckImages = {}
         self.load_image_assets()
         self.debugPrint = True
 
+        self.were_init_cards_dealt = False
+
         self.dt = 0
         self.back_card = self.deckImages.get("back")
-
-        self.did_deal_cards_init = False
+        self.deck_x, self.deck_y = 0, 0
 
         """
         self.back_card_image = self.back_card
@@ -27,64 +30,132 @@ class Durak:
         self.angle = 0
         """
         self.currently_animating_deck = True
-        self.currently_animating_deal = True
+        self.currently_animating_init_deal = False
 
         # used in self.animate_init_deck
         self.animate_deck_cards_count = 1
 
         self.players = []
+        self.attacker = None
 
         self.add_player(Player("Alex", True, 0))
         self.add_player(Player("NPC837", False, 1))
         self.add_player(Player("NPC619", False, 2))
 
-    def update(self):
-        if not self.did_deal_cards_init and not self.currently_animating_deck:
-            self.deal_cards_init()
-            self.did_deal_cards_init = True
+    def get_first_attacker(self):
+        temp_player = None
+        lowest_card = None
 
-    def draw_deck(self, screen):
-        deck_print_size = round(len(self.gameDeck)//1.5)
-        cardWidth, cardHeight = self.back_card.get_rect().size
-        deckX = (SCREENWIDTH // 2)
-        deckY = (SCREENHEIGHT // 2) - (cardHeight // 2)
+        # shuffle self.players so that if two players have 2s, one is randomly chosen
+        temp_players = self.players.copy()
+        shuffle(temp_players)
+        for p in temp_players:
+            p_lowest = p.get_lowest_card()
+            if lowest_card is None or (lowest_card.uber and not p_lowest.uber):
+                lowest_card = p_lowest
+                temp_player = p
+            elif lowest_card.uber == p_lowest.uber and p_lowest.rank < lowest_card.rank:
+                lowest_card = p_lowest
+                temp_player = p
+        print("{} is the attacker because of {}".format(temp_player.name, lowest_card))
+        self.attacker = temp_player
 
-        for i in range(ceil(deck_print_size / 3)):
-            screen.blit(self.back_card, (deckX + 5 + i * 2, deckY + i * 2))
-
-        # self.screen.blit(topCard, (deckX - cardWidth - 5, deckY))
-
-    def animate_init_deck(self, screen):
-        cardWidth, cardHeight = self.back_card.get_rect().size
-        deckX = (SCREENWIDTH // 2)
-        deckY = (SCREENHEIGHT // 2) - (cardHeight // 2)
-        for i in range(9):
-            if i == self.animate_deck_cards_count // 3:
-                self.animate_deck_cards_count += 1
-                return True
-            screen.blit(self.back_card, (deckX + 5 + i * 2, deckY + i * 2))
-        # we've animated it all
-        self.animate_deck_cards_count = 1
-        return False
-
-    def render(self, screen):
-        self.dt = self.pygame_clock.tick(60) / 1000.0
-        if self.currently_animating_deck:
-            self.currently_animating_deck = self.animate_init_deck(screen)
-        else:
-            self.draw_deck(screen)
-            self.draw_players(screen)
+    def load_image_assets(self):
+        for c in self.gameDeck.cards_list:
+            c.load_image_assets()
 
     def add_player(self, player):
         self.players.append(player)
 
     def deal_cards_init(self):
         # deal card by card
-        for i in range(8):
+        for i in range(6):
             for p in self.players:
                 if p.need_more_cards():
                     p.draw_card(self.gameDeck.pop())
                     p.sort_hand()
+        self.get_first_attacker()
+
+    def update(self):
+        if not self.currently_animating_deck and not self.were_init_cards_dealt:
+            self.deal_cards_init()
+            self.were_init_cards_dealt = True
+
+    def render(self, screen):
+        self.dt = self.pygame_clock.tick(60) / 1000.0
+        if self.currently_animating_deck:
+            self.currently_animating_deck = self.animate_init_deck(screen)
+            self.currently_animating_init_deal = not self.currently_animating_deck
+        elif self.currently_animating_init_deal:
+            self.currently_animating_init_deal = self.deal_cards_init_animation(screen)
+        else:
+            self.draw_deck(screen)
+            self.draw_players(screen)
+
+    def draw_deck(self, screen):
+        back_card_image = self.gameDeck.cards_list[1].back_card_image
+        cardWidth, cardHeight = back_card_image.get_rect().size
+        local_deck_x = (SCREENWIDTH // 2)
+        local_deck_y = (SCREENHEIGHT // 2) - (cardHeight // 2)
+
+        for i in range(ceil(len(self.gameDeck) / 4.5)):
+            self.deck_x, self.deck_y = (local_deck_x + i * 2, local_deck_y + i * 2)
+            screen.blit(back_card_image, (self.deck_x, self.deck_y))
+
+        top_card_image = self.gameDeck.cards_list[-1].card_image
+        screen.blit(top_card_image, (local_deck_x - top_card_image.get_rect().size[0], local_deck_y))
+
+        return True
+        # self.screen.blit(topCard, (deckX - cardWidth - 5, deckY))
+
+    def deal_cards_init_animation(self, screen):
+        temp_card = self.gameDeck.cards_list[1].back_card_image.copy()
+        temp_card_width, temp_card_height = temp_card.get_rect().size
+        user_y_pos = SCREENHEIGHT - temp_card_height // 2
+        user_x_pos = SCREENWIDTH // 4 + (SCREENWIDTH - SCREENWIDTH // 4) // 2
+        self.deck_x = (SCREENWIDTH // 2) + ceil(len(self.gameDeck) / 4.5)
+        self.deck_y = (SCREENHEIGHT // 2) - (temp_card_width // 2) + ceil(len(self.gameDeck) / 4.5)
+
+        for i in range(6):
+            for j, p in enumerate(self.players):
+                self.animate_card(screen, temp_card, (self.deck_x, self.deck_y), (user_x_pos, user_y_pos), None)
+        return False
+
+    def animate_card(self, screen, card, start, end, rotation):
+        card_rect = card.get_rect()
+        while start != end:
+            screen.blit(self.game_controller.background, (0, 0))
+            move_x = ceil((end[0] - start[0]) / 10)
+            move_y = ceil((end[1] - start[1]) / 10)
+            start = (start[0] + move_x, start[1] + move_y)
+            print(start)
+            card_rect.move_ip((move_x, move_y))
+            self.draw_deck(screen)
+            screen.blit(card, (start))
+            screen.blit(card, (end))
+            pygame.display.update()
+
+        # card.move_ip((0,0))
+
+        return start == end
+        # start = (start_x, start_y)
+        # end   = (end_x, end_y)
+        # rotation = degrees to turn before destination
+        pass
+
+    def animate_init_deck(self, screen):
+        back_card_image = self.gameDeck.cards_list[0].back_card_image
+        cardWidth, cardHeight = back_card_image.get_rect().size
+        deckX = (SCREENWIDTH // 2)
+        deckY = (SCREENHEIGHT // 2) - (cardHeight // 2)
+        for i in range(6):
+            if i == self.animate_deck_cards_count // 3:
+                self.animate_deck_cards_count += 1
+                return True
+            screen.blit(back_card_image, (deckX + i * 2, deckY + i * 2))
+        # we've animated it all
+        self.animate_deck_cards_count = 1
+        return False
 
     def draw_players(self, screen):
         for p in self.players:
@@ -94,36 +165,30 @@ class Durak:
                 user_cards_gap = (user_cards_x_end - user_cards_x) / len(p)
                 for i, c in enumerate(p.hand):
                     # temp_card = self.back_card.copy()
-                    temp_card = self.deckImages.get(c.suit + str(c.rank))
+                    temp_card = c.card_image
+                    # temp_card = self.deckImages.get(c.suit + str(c.rank))
                     temp_card_height = temp_card.get_rect().size[1]
                     screen.blit(temp_card, (user_cards_x + i * user_cards_gap, SCREENHEIGHT - temp_card_height // 2))
             elif p.id == 1:
+                # Left user
                 user_cards_y = SCREENHEIGHT // 4
                 user_cards_y_end = SCREENHEIGHT - SCREENHEIGHT // 4
                 user_cards_gap = (user_cards_y_end - user_cards_y) / len(p)
                 for i, c in enumerate(p.hand):
-                    temp_card = self.back_card.copy()
+                    temp_card = c.back_card_image
                     temp_card = pygame.transform.rotate(temp_card, 90)
                     temp_card_width = temp_card.get_rect().size[0]
-                    screen.blit(temp_card, (-(temp_card_width // 2), user_cards_y + i * user_cards_gap))
+                    screen.blit(temp_card, (-((temp_card_width * 2) // 3), user_cards_y + i * user_cards_gap))
             elif p.id == 2:
+                # Right user
                 user_cards_y = SCREENHEIGHT // 4
                 user_cards_y_end = SCREENHEIGHT - SCREENHEIGHT // 4
                 user_cards_gap = (user_cards_y_end - user_cards_y) / len(p)
                 for i, c in enumerate(p.hand):
-                    temp_card = self.back_card.copy()
+                    temp_card = c.back_card_image
                     temp_card = pygame.transform.rotate(temp_card, 90)
                     temp_card_width = temp_card.get_rect().size[0]
-                    screen.blit(temp_card, (SCREENWIDTH - temp_card_width // 2, user_cards_y + i * user_cards_gap))
-
-
-    def load_image_assets(self):
-        self.deckImages.update({"back": pygame.image.load('Res/Cards/BackCard.png').convert_alpha()})
-        for s in self.gameDeck.suits:
-            for r in self.gameDeck.ranks:
-                card_name = s + str(r)
-                card_path = "Res/Cards/" + card_name + ".png"
-                self.deckImages.update({card_name: pygame.image.load(card_path).convert_alpha()})
+                    screen.blit(temp_card, (SCREENWIDTH - temp_card_width // 3, user_cards_y + i * user_cards_gap))
 
     """
     def animate_deck(self, screen):

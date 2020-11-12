@@ -1,11 +1,18 @@
+import pygame
+from pygame.locals import *
 from random import shuffle
-
 
 class Card:
     def __init__(self, rank, suit):
         self.rank = rank
         self.suit = suit
         self.uber = False
+
+
+
+        # Image asset
+        self.back_card_image = None
+        self.card_image = None
 
     def __str__(self):
         if self.suit != self.uber:
@@ -28,6 +35,12 @@ class Card:
             print("Incorrectly comparing two cards")
             return None
 
+    def load_image_assets(self):
+        self.back_card_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
+        card_path = "Res/Cards/{}{}.png".format(self.suit, str(self.rank))
+        self.card_image = pygame.image.load(card_path).convert_alpha()
+
+
 
 class Deck:
     def __init__(self):
@@ -37,6 +50,12 @@ class Deck:
         self.uber = None
         self.top_card = None
         self.build()
+
+    def __len__(self):
+        return len(self.cards_list)
+
+    def __str__(self):
+        return "Deck has {} cards left".format(len(self.cards_list))
 
     def build(self):
         for s in self.suits:
@@ -58,10 +77,4 @@ class Deck:
 
     def pop(self):
         return self.cards_list.pop()
-
-    def __len__(self):
-        return len(self.cards_list)
-
-    def __str__(self):
-        return "Deck has {} cards left".format(len(self.cards_list))
 

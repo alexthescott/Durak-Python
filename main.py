@@ -8,7 +8,6 @@ from constants import *
 from durak_game import Durak
 from menu import Menu
 
-
 class MainController:
     def __init__(self):
         # Create pygame instance, set screen, clock
@@ -38,7 +37,7 @@ class MainController:
 
     # Start Game
     def start_game(self):
-        self.game = Durak(self.clock)
+        self.game = Durak(self.clock, self)
 
     # Update
     def update(self):
@@ -87,6 +86,5 @@ class MainController:
 
 if __name__ == '__main__':
     main_window = MainController()
-    # main_window.startGame()
     while True:
         main_window.update()
