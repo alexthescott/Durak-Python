@@ -23,17 +23,14 @@ class Durak:
         self.back_card = self.deckImages.get("back")
         self.deck_x, self.deck_y = 0, 0
 
-        """
-        self.back_card_image = self.back_card
-        self.back_card_rect = self.back_card_image.get_rect()
-        self.back_card_rect.x, self.back_card_rect.y = (SCREENWIDTH // 2), (SCREENHEIGHT // 2) - (self.back_card.get_rect().size[1] // 2)
-        self.angle = 0
-        """
         self.currently_animating_deck = True
         self.currently_animating_init_deal = False
 
         # used in self.animate_init_deck
         self.animate_deck_cards_count = 1
+
+        # used in deal_cards_init_animation
+        self.deal_cards_init_animation_count = 0
 
         self.players = []
         self.attacker = None
@@ -87,6 +84,7 @@ class Durak:
             self.currently_animating_deck = self.animate_init_deck(screen)
             self.currently_animating_init_deal = not self.currently_animating_deck
         elif self.currently_animating_init_deal:
+            self.draw_deck(screen)
             self.currently_animating_init_deal = self.deal_cards_init_animation(screen)
         else:
             self.draw_deck(screen)
@@ -112,36 +110,40 @@ class Durak:
         temp_card = self.gameDeck.cards_list[1].back_card_image.copy()
         temp_card_width, temp_card_height = temp_card.get_rect().size
         user_y_pos = SCREENHEIGHT - temp_card_height // 2
-        user_x_pos = SCREENWIDTH // 4 + (SCREENWIDTH - SCREENWIDTH // 4) // 2
+        user_x_pos = SCREENWIDTH // 2 - temp_card_width // 2
         self.deck_x = (SCREENWIDTH // 2) + ceil(len(self.gameDeck) / 4.5)
         self.deck_y = (SCREENHEIGHT // 2) - (temp_card_width // 2) + ceil(len(self.gameDeck) / 4.5)
 
-        for i in range(6):
-            for j, p in enumerate(self.players):
-                self.animate_card(screen, temp_card, (self.deck_x, self.deck_y), (user_x_pos, user_y_pos), None)
-        return False
+        # create len(players) * 6 cards, and deal them out
 
-    def animate_card(self, screen, card, start, end, rotation):
-        card_rect = card.get_rect()
-        while start != end:
-            screen.blit(self.game_controller.background, (0, 0))
-            move_x = ceil((end[0] - start[0]) / 10)
-            move_y = ceil((end[1] - start[1]) / 10)
-            start = (start[0] + move_x, start[1] + move_y)
-            print(start)
-            card_rect.move_ip((move_x, move_y))
-            self.draw_deck(screen)
-            screen.blit(card, (start))
-            screen.blit(card, (end))
-            pygame.display.update()
+        # get first card and move it
 
-        # card.move_ip((0,0))
+        alex_card = self.players[0].hand[self.deal_cards_init_animation_count]
 
-        return start == end
-        # start = (start_x, start_y)
-        # end   = (end_x, end_y)
-        # rotation = degrees to turn before destination
-        pass
+        if self.deal_cards_init_animation_count >= 1:
+            screen.blit(alex_card.back_card_image, (user_x_pos, user_y_pos))
+
+
+        if alex_card.is_animating:
+            alex_card.update_pos()
+            screen.blit(alex_card.back_card_image, (alex_card.current_position))
+            if alex_card.current_position == alex_card.goal_position:
+                self.deal_cards_init_animation_count += 1
+                alex_card.is_animating = False
+        else:
+            self.animate_card(screen, alex_card, (self.deck_x, self.deck_y), (user_x_pos, user_y_pos))
+            screen.blit(alex_card.back_card_image, (alex_card.current_position))
+
+
+
+        return self.deal_cards_init_animation_count != 6
+
+    def animate_card(self, screen, card, start, end, rotation = 0):
+        card.current_position = start
+        card.goal_position = end
+        card.is_animating = True
+
+        # still need to deal with angle rotation
 
     def animate_init_deck(self, screen):
         back_card_image = self.gameDeck.cards_list[0].back_card_image
@@ -189,13 +191,3 @@ class Durak:
                     temp_card = pygame.transform.rotate(temp_card, 90)
                     temp_card_width = temp_card.get_rect().size[0]
                     screen.blit(temp_card, (SCREENWIDTH - temp_card_width // 3, user_cards_y + i * user_cards_gap))
-
-    """
-    def animate_deck(self, screen):
-        self.back_card_image = pygame.transform.rotate(self.back_card, self.angle)
-        self.angle += 2
-        x, y = self.back_card_rect.center
-        self.back_card_rect = self.back_card_image.get_rect()
-        self.back_card_rect.center = (x, y)
-        return self.angle != 180
-    """

@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
 from random import shuffle
+from math import ceil
 
 class Card:
     def __init__(self, rank, suit):
@@ -8,11 +9,19 @@ class Card:
         self.suit = suit
         self.uber = False
 
+        self.current_position = (0, 0)
+        self.goal_position = (0, 0)
+        self.is_animating = False
+        # set bool if we need to animate
+        # include self.goal position
+        # if not at self.goal position, move in a call to update
 
+        # find a way to tie self.val to pygame.Rect?
 
         # Image asset
         self.back_card_image = None
         self.card_image = None
+
 
     def __str__(self):
         if self.suit != self.uber:
@@ -34,6 +43,22 @@ class Card:
         else:
             print("Incorrectly comparing two cards")
             return None
+
+    def update_pos(self):
+        temp_rect = self.back_card_image.get_rect()
+        move_x = ceil((self.goal_position[0] - self.current_position[0]) / 5)
+        if self.goal_position[0] < self.current_position[0] and move_x == 0:
+            move_x = -1
+        elif self.goal_position[0] > self.current_position[0] and move_x == 0:
+            move_x = 1
+        move_y = ceil((self.goal_position[1] - self.current_position[1]) / 5)
+        if self.goal_position[1] < self.current_position[1] and move_x == 0:
+            move_y = -1
+        elif self.goal_position[1] > self.current_position[1] and move_x == 0:
+            move_y = 1
+        self.current_position = (self.current_position[0] + move_x, self.current_position[1] + move_y)
+        temp_rect.move_ip(move_x, move_y)
+
 
     def load_image_assets(self):
         self.back_card_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
