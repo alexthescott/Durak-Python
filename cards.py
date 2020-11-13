@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from random import shuffle
-from math import ceil
+from math import ceil, floor
 
 class Card:
     def __init__(self, rank, suit):
@@ -11,17 +11,13 @@ class Card:
 
         self.current_position = (0, 0)
         self.goal_position = (0, 0)
+        self.current_rotation = 0
+        self.goal_rotation = 0
         self.is_animating = False
-        # set bool if we need to animate
-        # include self.goal position
-        # if not at self.goal position, move in a call to update
-
-        # find a way to tie self.val to pygame.Rect?
 
         # Image asset
         self.back_card_image = None
         self.card_image = None
-
 
     def __str__(self):
         if self.suit != self.uber:
@@ -45,26 +41,27 @@ class Card:
             return None
 
     def update_pos(self):
+        animation_constant = 5
+        x_dif = self.goal_position[0] - self.current_position[0]
+        y_dif = self.goal_position[1] - self.current_position[1]
+        move_x = ceil(x_dif / animation_constant) if x_dif > 0 else floor(x_dif / animation_constant)
+        move_y = ceil(y_dif / animation_constant) if y_dif > 0 else floor(y_dif / animation_constant)
+
+        if self.goal_rotation != self.current_rotation:
+            angle_dif = self.goal_rotation - self.current_rotation
+            move_angle = ceil(angle_dif / animation_constant) if angle_dif > 0 else floor(angle_dif / animation_constant)
+            self.current_rotation += move_angle
+        temp_screen = pygame.transform.rotate(self.back_card_image, self.current_rotation)
+
         temp_rect = self.back_card_image.get_rect()
-        move_x = ceil((self.goal_position[0] - self.current_position[0]) / 5)
-        if self.goal_position[0] < self.current_position[0] and move_x == 0:
-            move_x = -1
-        elif self.goal_position[0] > self.current_position[0] and move_x == 0:
-            move_x = 1
-        move_y = ceil((self.goal_position[1] - self.current_position[1]) / 5)
-        if self.goal_position[1] < self.current_position[1] and move_x == 0:
-            move_y = -1
-        elif self.goal_position[1] > self.current_position[1] and move_x == 0:
-            move_y = 1
         self.current_position = (self.current_position[0] + move_x, self.current_position[1] + move_y)
         temp_rect.move_ip(move_x, move_y)
-
+        return temp_screen
 
     def load_image_assets(self):
         self.back_card_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
         card_path = "Res/Cards/{}{}.png".format(self.suit, str(self.rank))
         self.card_image = pygame.image.load(card_path).convert_alpha()
-
 
 
 class Deck:

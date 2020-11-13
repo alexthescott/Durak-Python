@@ -109,38 +109,58 @@ class Durak:
     def deal_cards_init_animation(self, screen):
         temp_card = self.gameDeck.cards_list[1].back_card_image.copy()
         temp_card_width, temp_card_height = temp_card.get_rect().size
-        user_y_pos = SCREENHEIGHT - temp_card_height // 2
         user_x_pos = SCREENWIDTH // 2 - temp_card_width // 2
+        user_y_pos = SCREENHEIGHT - temp_card_height // 2
+
+        first_bot_x_pos = -(temp_card_width // 2)
+        first_bot_y_pos = SCREENHEIGHT // 2 - temp_card_height // 2
+
+        second_bot_x_pos = SCREENWIDTH - temp_card_width // 2
+        second_bot_y_pos = SCREENHEIGHT // 2 - temp_card_height // 2
+
         self.deck_x = (SCREENWIDTH // 2) + ceil(len(self.gameDeck) / 4.5)
         self.deck_y = (SCREENHEIGHT // 2) - (temp_card_width // 2) + ceil(len(self.gameDeck) / 4.5)
 
         # create len(players) * 6 cards, and deal them out
 
         # get first card and move it
+        player_count = len(self.players)
 
-        alex_card = self.players[0].hand[self.deal_cards_init_animation_count]
+        player_index = self.deal_cards_init_animation_count % player_count
+        card_index = self.deal_cards_init_animation_count // player_count
+        temp_card = self.players[player_index].hand[card_index]
+
 
         if self.deal_cards_init_animation_count >= 1:
-            screen.blit(alex_card.back_card_image, (user_x_pos, user_y_pos))
+            screen.blit(temp_card.back_card_image, (user_x_pos, user_y_pos))
+        if self.deal_cards_init_animation_count >= 2:
+            temp_screen = pygame.transform.rotate(temp_card.back_card_image, 90)
+            screen.blit(temp_screen, (first_bot_x_pos, first_bot_y_pos))
+        if self.deal_cards_init_animation_count >= 3:
+            temp_screen = pygame.transform.rotate(temp_card.back_card_image, 270)
+            screen.blit(temp_screen, (second_bot_x_pos, second_bot_y_pos))
 
-
-        if alex_card.is_animating:
-            alex_card.update_pos()
-            screen.blit(alex_card.back_card_image, (alex_card.current_position))
-            if alex_card.current_position == alex_card.goal_position:
+        if temp_card.is_animating:
+            card_screen = temp_card.update_pos()
+            screen.blit(card_screen, temp_card.current_position)
+            if temp_card.current_position == temp_card.goal_position:
                 self.deal_cards_init_animation_count += 1
-                alex_card.is_animating = False
+                temp_card.is_animating = False
         else:
-            self.animate_card(screen, alex_card, (self.deck_x, self.deck_y), (user_x_pos, user_y_pos))
-            screen.blit(alex_card.back_card_image, (alex_card.current_position))
+            if self.deal_cards_init_animation_count % 3 == 0:
+                self.animate_card(screen, temp_card, (self.deck_x, self.deck_y), (user_x_pos, user_y_pos))
+            elif self.deal_cards_init_animation_count % 3 == 1:
+                self.animate_card(screen, temp_card, (self.deck_x, self.deck_y), (first_bot_x_pos, first_bot_y_pos), 90)
+            elif self.deal_cards_init_animation_count % 3 == 2:
+                self.animate_card(screen, temp_card, (self.deck_x, self.deck_y), (second_bot_x_pos, second_bot_y_pos), 90)
+            screen.blit(temp_card.back_card_image, temp_card.current_position)
 
+        return self.deal_cards_init_animation_count != 6 * player_count
 
-
-        return self.deal_cards_init_animation_count != 6
-
-    def animate_card(self, screen, card, start, end, rotation = 0):
+    def animate_card(self, screen, card, start, end, rotation=0):
         card.current_position = start
         card.goal_position = end
+        card.goal_rotation = rotation
         card.is_animating = True
 
         # still need to deal with angle rotation
