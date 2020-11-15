@@ -41,7 +41,7 @@ class Card:
             return None
 
     def update_pos(self):
-        animation_constant = 5
+        animation_constant = 3
         x_dif = self.goal_position[0] - self.current_position[0]
         y_dif = self.goal_position[1] - self.current_position[1]
         move_x = ceil(x_dif / animation_constant) if x_dif > 0 else floor(x_dif / animation_constant)
