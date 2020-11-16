@@ -9,15 +9,20 @@ class Card:
         self.suit = suit
         self.uber = False
 
-        self.current_position = (0, 0)
-        self.goal_position = (0, 0)
-        self.current_rotation = 0
-        self.goal_rotation = 0
+        # current and goal vars for animation
         self.is_animating = False
+        self.c_pos = (0, 0)
+        self.g_pos = (0, 0)
+        self.c_roto = 0
+        self.g_roto = 0
+        # flip should take .3 seconds (18 frames @ 60FPS)
+        self.c_flip = 0
+        self.g_flip = 0
 
         # Image asset
-        self.back_card_image = None
-        self.card_image = None
+        self.back_image = None
+        self.front_image = None
+        self.current_image = None
 
     def __str__(self):
         if self.suit != self.uber:
@@ -40,28 +45,45 @@ class Card:
             print("Incorrectly comparing two cards")
             return None
 
-    def update_pos(self):
-        animation_constant = 3
-        x_dif = self.goal_position[0] - self.current_position[0]
-        y_dif = self.goal_position[1] - self.current_position[1]
-        move_x = ceil(x_dif / animation_constant) if x_dif > 0 else floor(x_dif / animation_constant)
-        move_y = ceil(y_dif / animation_constant) if y_dif > 0 else floor(y_dif / animation_constant)
+    def flip_card(self):
+        # frames to transform
+        # flip
+        # frames to unflip
+        self.c_flip = 16
+        self.is_animating = False
+        print("Implement flip_card")
+        pass
 
-        if self.goal_rotation != self.current_rotation:
-            angle_dif = self.goal_rotation - self.current_rotation
-            move_angle = ceil(angle_dif / animation_constant) if angle_dif > 0 else floor(angle_dif / animation_constant)
-            self.current_rotation += move_angle
-        temp_screen = pygame.transform.rotate(self.back_card_image, self.current_rotation)
+    def animate_card(self, start, end, rotation=0):
+        self.c_pos = start
+        self.g_pos = end
+        self.g_roto = rotation
+        self.is_animating = True
 
-        temp_rect = self.back_card_image.get_rect()
-        self.current_position = (self.current_position[0] + move_x, self.current_position[1] + move_y)
+    def update_pos(self, animate_const=1):
+        if self.c_pos == self.g_pos:
+            self.is_animating = False
+            return pygame.transform.rotate(self.back_image, self.c_roto)
+        x_dif, y_dif = self.g_pos[0] - self.c_pos[0], self.g_pos[1] - self.c_pos[1]
+        move_x = ceil(x_dif / animate_const) if x_dif > 0 else floor(x_dif / animate_const)
+        move_y = ceil(y_dif / animate_const) if y_dif > 0 else floor(y_dif / animate_const)
+
+        if self.g_roto != self.c_roto:
+            angle_dif = self.g_roto - self.c_roto
+            move_angle = ceil(angle_dif / animate_const) if angle_dif > 0 else floor(angle_dif / animate_const)
+            self.c_roto += move_angle
+        temp_screen = pygame.transform.rotate(self.back_image, self.c_roto)
+
+        temp_rect = self.back_image.get_rect()
+        self.c_pos = (self.c_pos[0] + move_x, self.c_pos[1] + move_y)
         temp_rect.move_ip(move_x, move_y)
         return temp_screen
 
     def load_image_assets(self):
-        self.back_card_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
+        self.back_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
+        self.current_image = self.back_image
         card_path = "Res/Cards/{}{}.png".format(self.suit, str(self.rank))
-        self.card_image = pygame.image.load(card_path).convert_alpha()
+        self.front_image = pygame.image.load(card_path).convert_alpha()
 
 
 class Deck:
