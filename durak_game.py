@@ -3,7 +3,7 @@ from math import ceil
 from random import shuffle
 
 # local imports
-from cards import Deck, Card
+from cards import Deck
 from constants import *
 from player import Player
 
@@ -125,6 +125,9 @@ class Durak:
             elif player_index % 3 == 2:
                 card_goal_x, card_goal_y = SCREENWIDTH - card_height // 2, SCREENHEIGHT // 2 - card_width // 2
                 card_goal_rotate = 90
+            else:
+                card_goal_x, card_goal_y = SCREENWIDTH // 2, SCREENHEIGHT // 2
+                card_goal_rotate = 0
 
             if self.animate_init_deal_count >= 1:
                 user_x, user_y = SCREENWIDTH // 2 - card_width // 2, SCREENHEIGHT - card_height // 2
@@ -144,7 +147,7 @@ class Durak:
                 if card_dealt.c_pos == card_dealt.g_pos:
                     self.animate_init_deal_count += 1
             else:
-                card_dealt.animate_card((self.deck_x, self.deck_y), (card_goal_x, card_goal_y), card_goal_rotate)
+                card_dealt.set_new_pos((self.deck_x, self.deck_y), (card_goal_x, card_goal_y), card_goal_rotate)
                 screen.blit(card_dealt.current_image, card_dealt.c_pos)
 
         # @ card count == player_count * 6 (launch animation)
@@ -158,21 +161,21 @@ class Durak:
                         user_cards_gap = ((SCREENWIDTH - SCREENWIDTH // 4) - (SCREENWIDTH // 4)) / len(self.players[0])
                         user_goal_x = round(SCREENWIDTH // 4 + i * user_cards_gap)
                         user_goal_y = SCREENHEIGHT - card_height // 2
-                        c.animate_card((user_x, user_y), (user_goal_x, user_goal_y))
+                        c.set_new_pos((user_x, user_y), (user_goal_x, user_goal_y))
                     elif p_index == 1:
                         left_x = -(card_height // 2)
                         left_y = SCREENHEIGHT // 2 - card_width // 2
                         left_cards_gap = ((SCREENHEIGHT - SCREENHEIGHT // 4) - (SCREENHEIGHT // 4)) / len(p)
                         left_goal_x = -((card_height * 2) // 3)
                         left_goal_y = round((SCREENHEIGHT // 4) + i * left_cards_gap)
-                        c.animate_card((left_x, left_y), (left_goal_x, left_goal_y), 90)
+                        c.set_new_pos((left_x, left_y), (left_goal_x, left_goal_y), 90)
                     elif p_index == 2:
                         right_x = SCREENWIDTH - card_height // 2
                         right_y = SCREENHEIGHT // 2 - card_width // 2
                         right_cards_gap = ((SCREENHEIGHT - SCREENHEIGHT // 4) - (SCREENHEIGHT // 4)) / len(p)
                         right_goal_x = SCREENWIDTH - card_height // 3
                         right_goal_y = round((SCREENHEIGHT // 4) + i * right_cards_gap)
-                        c.animate_card((right_x, right_y), (right_goal_x, right_goal_y), 90)
+                        c.set_new_pos((right_x, right_y), (right_goal_x, right_goal_y), 90)
             self.animate_init_deal_count += 1
 
         # @ card count == player_count * 6 + 1 (update animation)
@@ -193,10 +196,9 @@ class Durak:
                     screen.blit(c.update_pos(6), c.c_pos)
             temp_card = self.players[0].hand[0]
             if temp_card.is_animating and temp_card.c_flip > 0:
-                card_screen = c.update_pos(6)
+                card_screen = temp_card.update_pos(6)
                 screen.blit(card_screen, temp_card.c_pos)
             elif not temp_card.is_animating and temp_card.c_flip == 0:
-                print("FLIP CARD")
                 temp_card.flip_card()
             else:
                 print("EXIT")
@@ -205,14 +207,14 @@ class Durak:
 
     def animate_init_deck(self, screen):
         back_card_image = self.deck.cards_list[0].back_image
-        cardWidth, cardHeight = back_card_image.get_rect().size
-        deckX = (SCREENWIDTH // 2)
-        deckY = (SCREENHEIGHT // 2) - (cardHeight // 2)
+        card_width, card_height = back_card_image.get_rect().size
+        deck_x = (SCREENWIDTH // 2)
+        deck_y = (SCREENHEIGHT // 2) - (card_height // 2)
         for i in range(6):
             if i == self.animate_deck_count // 3:
                 self.animate_deck_count += 1
                 return True
-            screen.blit(back_card_image, (deckX + i * 2, deckY + i * 2))
+            screen.blit(back_card_image, (deck_x + i * 2, deck_y + i * 2))
         # we've animated it all
         self.animate_deck_count = 1
         return False

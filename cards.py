@@ -49,35 +49,34 @@ class Card:
         # frames to transform
         # flip
         # frames to unflip
-        self.c_flip = 16
-        self.is_animating = False
-        print("Implement flip_card")
-        pass
+        self.g_flip = 16 if self.c_flip == 0 else 0
+        self.is_animating = True
 
-    def animate_card(self, start, end, rotation=0):
+    def set_new_pos(self, start, end, rotation=0):
         self.c_pos = start
         self.g_pos = end
         self.g_roto = rotation
         self.is_animating = True
 
-    def update_pos(self, animate_const=1):
-        if self.c_pos == self.g_pos:
-            self.is_animating = False
+    def update_pos(self, animate_const=3):
+        self.is_animating = self.c_pos != self.g_pos or self.c_roto != self.g_roto or self.c_flip != self.g_flip
+        if not self.is_animating:
             return pygame.transform.rotate(self.back_image, self.c_roto)
-        x_dif, y_dif = self.g_pos[0] - self.c_pos[0], self.g_pos[1] - self.c_pos[1]
-        move_x = ceil(x_dif / animate_const) if x_dif > 0 else floor(x_dif / animate_const)
-        move_y = ceil(y_dif / animate_const) if y_dif > 0 else floor(y_dif / animate_const)
 
-        if self.g_roto != self.c_roto:
+        if self.c_roto != self.g_roto:
             angle_dif = self.g_roto - self.c_roto
             move_angle = ceil(angle_dif / animate_const) if angle_dif > 0 else floor(angle_dif / animate_const)
             self.c_roto += move_angle
-        temp_screen = pygame.transform.rotate(self.back_image, self.c_roto)
 
-        temp_rect = self.back_image.get_rect()
-        self.c_pos = (self.c_pos[0] + move_x, self.c_pos[1] + move_y)
-        temp_rect.move_ip(move_x, move_y)
-        return temp_screen
+        if self.c_pos != self.g_pos:
+            x_dif, y_dif = self.g_pos[0] - self.c_pos[0], self.g_pos[1] - self.c_pos[1]
+            move_x = ceil(x_dif / animate_const) if x_dif > 0 else floor(x_dif / animate_const)
+            move_y = ceil(y_dif / animate_const) if y_dif > 0 else floor(y_dif / animate_const)
+            self.c_pos = (self.c_pos[0] + move_x, self.c_pos[1] + move_y)
+            temp_rect = self.back_image.get_rect()
+            temp_rect.move_ip(move_x, move_y)
+
+        return pygame.transform.rotate(self.back_image, self.c_roto)
 
     def load_image_assets(self):
         self.back_image = pygame.image.load('Res/Cards/BackCard.png').convert_alpha()
