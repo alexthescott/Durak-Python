@@ -70,6 +70,7 @@ class Menu:
         if self.optionsButton.collidepoint(self.my, self.my):
             self.state = OPTION_SCREEN
             return OPTION_SCREEN
+        self.click = False
         return 0
 
     def animate_off(self):

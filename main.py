@@ -61,6 +61,8 @@ class MainController:
                 if self.animate_state == MENU_SCREEN:
                     self.menu.mouse_click()
                     self.animate_state = self.menu.get_menu_click()
+                elif self.animate_state == GAME_SCREEN:
+                    self.game.mouse_click()
 
     # Render
     def render(self):
