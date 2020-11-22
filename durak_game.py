@@ -114,10 +114,6 @@ class Durak:
             temp_rect = pygame.rect.Rect(self.mx, self.my, self.back_image.get_rect().size[0], self.back_image.get_rect().size[1])
             pygame.draw.rect(screen, (255, 255, 255), temp_rect)
 
-    def draw_table(self, screen):
-        # c_width, c_height = self.back_card.get_rect().size
-        # temp_rect = pygame.rect()
-        pass
 
     def draw_players(self, screen):
         for p in self.players:
